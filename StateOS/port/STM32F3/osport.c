@@ -64,19 +64,6 @@ void port_sys_init( void )
 
 /******************************************************************************
  Put here configuration of system timer for non-tick-less mode
-
- Example for TIM1:
-
-	NVIC_SetPriority(TIM1_UP_TIM10_IRQn, 0xFF);
-	NVIC_EnableIRQ  (TIM1_UP_TIM10_IRQn);
-	BB(RCC->APB2ENR, RCC_APB2ENR_TIM1EN) = 1;
-
-	TIM1->PSC  = CPU_FREQUENCY / 10000 - 1;
-	TIM1->ARR  = 10000 /  OS_FREQUENCY - 1;
-	TIM1->EGR  = TIM_EGR_UG;
-	TIM1->CR1  = TIM_CR1_CEN;
-	TIM1->DIER = TIM_DIER_UIE;
-
 *******************************************************************************/
 
 	#if	CPU_FREQUENCY/OS_FREQUENCY-1 > SysTick_LOAD_RELOAD_Msk
@@ -108,21 +95,6 @@ void port_sys_init( void )
 
 /******************************************************************************
  Put here the procedure of interrupt handler of system timer for non-tick-less mode
-
- Example for TIM1:
-
-void TIM1_UP_TIM10_IRQHandler( void )
-{
-	TIM1->SR = 0; // clear timer's status register
-	System.cnt++;
-#if OS_ROBIN
-	core_tmr_handler();
-	System.dly++;
-	if (System.dly >= OS_FREQUENCY/OS_ROBIN)
-	port_ctx_switch();
-#endif
-}
-
 *******************************************************************************/
 
 void SysTick_Handler( void )
