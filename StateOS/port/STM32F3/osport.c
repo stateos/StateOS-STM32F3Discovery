@@ -2,7 +2,7 @@
 
     @file    StateOS: osport.c
     @author  Rajmund Szymanski
-    @date    03.03.2016
+    @date    07.03.2016
     @brief   StateOS port file for STM32F3 uC.
 
  ******************************************************************************
@@ -51,10 +51,24 @@ void port_sys_init( void )
 	OS_TIM->PSC  = CPU_FREQUENCY/OS_FREQUENCY-1;
 	OS_TIM->EGR  = TIM_EGR_UG;
 	OS_TIM->CR1  = TIM_CR1_CEN;
-	#if OS_ROBIN
-	OS_TIM->CCR1 = OS_FREQUENCY/OS_ROBIN;
-	OS_TIM->DIER = TIM_DIER_CC1IE;
+
+/******************************************************************************
+ End of configuration
+*******************************************************************************/
+
+/******************************************************************************
+ Put here configuration of interrupt for context switch triggering
+*******************************************************************************/
+
+#if OS_ROBIN
+
+	#if	CPU_FREQUENCY/OS_ROBIN-1 > SysTick_LOAD_RELOAD_Msk
+	#error Incorrect SysTick frequency!
 	#endif
+
+	SysTick_Config(CPU_FREQUENCY/OS_ROBIN);
+
+#endif//OS_ROBIN
 
 /******************************************************************************
  End of configuration
@@ -91,7 +105,7 @@ void port_sys_init( void )
 
 /* -------------------------------------------------------------------------- */
 
-#if  OS_TIMER == 0
+#if OS_TIMER == 0
 
 /******************************************************************************
  Put here the procedure of interrupt handler of system timer for non-tick-less mode
@@ -112,30 +126,31 @@ void SysTick_Handler( void )
  End of the procedure of interrupt handler
 *******************************************************************************/
 
-#endif
+#endif//OS_TIMER
 
 /* -------------------------------------------------------------------------- */
 
-#if OS_TIMER != 0
-#if OS_ROBIN
+#if OS_TIMER && OS_ROBIN
 
 /******************************************************************************
- Put here the procedure of interrupt handler of system timer for tick-less mode witch preemption
+ Put here procedures of interrupt handlers of system timer for tick-less mode witch preemption
 *******************************************************************************/
 
 void OS_TIM_IRQHandler( void )
 {
-	unsigned state = OS_TIM->SR;
 	OS_TIM->SR = 0;
-	if (state & TIM_SR_CC2IF) core_tmr_handler();
-	if (state & TIM_SR_CC1IF) port_ctx_switch();
+	core_tmr_handler();
+}
+
+void SysTick_Handler( void )
+{
+	port_ctx_switch();
 }
 
 /******************************************************************************
  End of the procedure of interrupt handler
 *******************************************************************************/
 
-#endif
 #endif
 
 /* -------------------------------------------------------------------------- */
