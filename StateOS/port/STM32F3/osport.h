@@ -2,7 +2,7 @@
 
     @file    StateOS: osport.h
     @author  Rajmund Szymanski
-    @date    08.03.2016
+    @date    09.03.2016
     @brief   StateOS port definitions for STM32F3 uC.
 
  ******************************************************************************
