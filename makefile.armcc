@@ -1,13 +1,14 @@
 #**********************************************************#
 #file     makefile
 #author   Rajmund Szymanski
-#date     31.10.2015
+#date     19.05.2016
 #brief    STM32F3xx makefile.
 #**********************************************************#
 
 ARMCC      := c:/sys/arm/armcc/bin/
 GNUCC      := c:/sys/gcc/bin/arm-none-eabi-
 OPENOCD    := c:/sys/tools/openocd/bin-x64/openocd
+STLINK     := c:/sys/tools/st-link/st-link_cli -Q -c SWD UR
 
 #----------------------------------------------------------#
 
@@ -17,13 +18,12 @@ LIBS       ?=
 DIRS       ?=
 KEYS       ?=
 INCS       ?=
-OUTDIR     ?=
 SCRIPT     ?=
 
 #----------------------------------------------------------#
 
 DEFS       += STM32F303xC
-KEYS       += .arm *
+KEYS       += .armcc *
 
 #----------------------------------------------------------#
 
@@ -36,7 +36,6 @@ SIZE       := $(GNUCC)size
 LD         := $(ARMCC)armlink
 AR         := $(ARMCC)armar
 
-MD         := mkdir
 RM         ?= rm -f
 
 #----------------------------------------------------------#
@@ -54,36 +53,35 @@ CXX_EXT    := .cpp
 INC_DIRS   := $(sort $(dir $(foreach d,$(VPATH),$(wildcard $d*.h $d*.hpp))))
 LIB_DIRS   := $(sort $(dir $(foreach d,$(VPATH),$(wildcard $d*.lib))))
 MAKE_FILES :=     $(notdir $(foreach d,$(VPATH),$(wildcard $d*makefile* $d*.mk)))
-AS_SRCS    :=     $(notdir $(foreach d,$(VPATH),$(wildcard $d*$(AS_EXT))))
-C_SRCS     :=     $(notdir $(foreach d,$(VPATH),$(wildcard $d*$(C_EXT))))
-CXX_SRCS   :=     $(notdir $(foreach d,$(VPATH),$(wildcard $d*$(CXX_EXT))))
+AS_SRCS    :=              $(foreach d,$(VPATH),$(wildcard $d*$(AS_EXT)))
+C_SRCS     :=              $(foreach d,$(VPATH),$(wildcard $d*$(C_EXT)))
+CXX_SRCS   :=              $(foreach d,$(VPATH),$(wildcard $d*$(CXX_EXT)))
 LIB_SRCS   :=     $(notdir $(foreach d,$(VPATH),$(wildcard $d*.lib)))
-ifeq ($(SCRIPT),)
+ifeq ($(strip $(SCRIPT)),)
 SCRIPT     :=  $(firstword $(foreach d,$(VPATH),$(wildcard $d*.sct)))
 else
 SCRIPT     :=  $(firstword $(foreach d,$(VPATH),$(wildcard $d$(SCRIPT))))
 endif
-ifeq ($(PROJECT),)
+ifeq ($(strip $(PROJECT)),)
 PROJECT    :=     $(notdir $(CURDIR))
 endif
-ifeq ($(OUTDIR),)
-OUTDIR     := _output
-endif
+
+AS_SRCS    := $(AS_SRCS:%.S=)
 
 #----------------------------------------------------------#
 
-BIN        := $(OUTDIR)/$(PROJECT).bin
-ELF        := $(OUTDIR)/$(PROJECT).axf
-FED        := $(OUTDIR)/$(PROJECT).fed
-HEX        := $(OUTDIR)/$(PROJECT).hex
-HTM        := $(OUTDIR)/$(PROJECT).htm
-LIB        := $(OUTDIR)/$(PROJECT).lib
-LSS        := $(OUTDIR)/$(PROJECT).lss
-MAP        := $(OUTDIR)/$(PROJECT).map
+BIN        := $(PROJECT).bin
+ELF        := $(PROJECT).axf
+FED        := $(PROJECT).fed
+HEX        := $(PROJECT).hex
+HTM        := $(PROJECT).htm
+LIB        := $(PROJECT).lib
+LSS        := $(PROJECT).lss
+MAP        := $(PROJECT).map
 
-OBJS       := $(AS_SRCS:%$(AS_EXT)=$(OUTDIR)/%.o)
-OBJS       += $(C_SRCS:%$(C_EXT)=$(OUTDIR)/%.o)
-OBJS       += $(CXX_SRCS:%$(CXX_EXT)=$(OUTDIR)/%.o)
+OBJS       := $(AS_SRCS:%$(AS_EXT)=%.o)
+OBJS       += $(C_SRCS:%$(C_EXT)=%.o)
+OBJS       += $(CXX_SRCS:%$(CXX_EXT)=%.o)
 CRFS       := $(OBJS:.o=.crf)
 DEPS       := $(OBJS:.o=.d)
 LSTS       := $(OBJS:.o=.lst)
@@ -93,22 +91,20 @@ TXTS       := $(OBJS:.o=.txt)
 
 CORE_F     := --cpu=cortex-m4 --fpu=fpv4-sp --apcs=/hardfp/interwork
 
-COMMON_F    = # --debug
-COMMON_F   += --md --depend=$(@:.o=.d)
+COMMON_F    = --md --depend=$(@:.o=.d) # --feedback=$(FED)
+COMMON_F   += # --debug
 
 OPTIM_F    := -Ospace --split_sections --interleave
 
 AS_FLAGS    = # --list=$(@:.o=.lst)
-C_FLAGS     = --c99
-C_FLAGS    += # --asm --asm_dir=$(OUTDIR) # --list --list_dir=$(OUTDIR)
-CXX_FLAGS   = --cpp11
-CXX_FLAGS  += # --asm --asm_dir=$(OUTDIR) # --list --list_dir=$(OUTDIR)
+C_FLAGS     = --c99   --asm --asm_dir=$(@D) # --list --list_dir=$(@D)
+CXX_FLAGS   = --cpp11 --asm --asm_dir=$(@D) # --list --list_dir=$(@D)
 LD_FLAGS    = --strict --scatter=$(SCRIPT) --symbols --list_mapping_symbols
 LD_FLAGS   += --map --info common,sizes,summarysizes,totals,veneers,unused --list=$(MAP) # --callgraph
 
 #----------------------------------------------------------#
 
-ifneq ($(CXX_SRCS),)
+ifneq ($(strip $(CXX_SRCS)),)
 DEFS       += __USES_CXX
 endif
 ifneq ($(filter __MICROLIB,$(DEFS)),)
@@ -168,32 +164,32 @@ OOCD_EXIT  := -c shutdown
 
 #----------------------------------------------------------#
 
-all : make_output_dir $(LSS) print_size print_elf_size
+all : $(LSS) print_elf_size
 
-lib : make_output_dir $(LIB) print_size
+lib : $(LIB) print_size
 
 $(ELF) : $(OBJS) $(SCRIPT)
 	$(info Linking target: $(ELF))
-ifeq ($(SCRIPT),)
+ifeq ($(strip $(SCRIPT)),)
 	$(error No scatter file in project)
 endif
 	$(LD) $(LD_FLAGS) $(OBJS) $(LIBS_F) $(LIB_DIRS_F) -o $@
 
 $(LIB) : $(OBJS)
 	$(info Building library: $(LIB))
-	$(AR) --create $@ $?
+	$(AR) -r $@ $?
 
 $(OBJS) : $(MAKE_FILES)
 
-$(OUTDIR)/%.o : %$(AS_EXT)
+%.o : %$(AS_EXT)
 	$(info Assembling file: $<)
 	$(AS) $(AS_FLAGS) $< -o $@
 
-$(OUTDIR)/%.o : %$(C_EXT)
+%.o : %$(C_EXT)
 	$(info Compiling file: $<)
 	$(CC) $(C_FLAGS) -c $< -o $@
 
-$(OUTDIR)/%.o : %$(CXX_EXT)
+%.o : %$(CXX_EXT)
 	$(info Compiling file: $<)
 	$(CXX) $(CXX_FLAGS) -c $< -o $@
 
@@ -213,33 +209,19 @@ print_size :
 	$(info Size of modules:)
 	$(SIZE) -B -t --common $(OBJS)
 
-print_elf_size :
+print_elf_size : print_size
 	$(info Size of target file:)
 	$(SIZE) -B $(ELF)
-
-make_output_dir :
-ifeq      ($(wildcard $(OUTDIR)),)
-	$(info Creating output directory: $(OUTDIR))
-	$(MD) $(OUTDIR)
-endif
 
 GENERATED = $(BIN) $(ELF) $(FED) $(HEX) $(HTM) $(LIB) $(LSS) $(MAP) $(CRFS) $(DEPS) $(LSTS) $(OBJS) $(TXTS)
 
 clean :
-ifeq      ($(wildcard $(OUTDIR)),)
-	$(info Nothing to clean...)
-else ifeq ($(sort $(wildcard $(OUTDIR)/*)),$(sort $(wildcard $(GENERATED))))
-	$(info Removing output directory: $(OUTDIR))
-	$(RM)dr $(OUTDIR)
-else ifeq ($(wildcard $(GENERATED)),)
-	$(info Nothing to clean...)
-else
 	$(info Removing all generated output files)
 	$(RM) $(GENERATED)
-endif
 
-flash : all
+flash : all # $(HEX)
 	$(info Programing device...)
+#	$(STLINK) -P $(HEX) -V -Rst
 	$(OPENOCD) $(OOCD_INIT) $(OOCD_SAVE) $(OOCD_EXEC) $(OOCD_EXIT)
 
 debug : all
@@ -248,6 +230,7 @@ debug : all
 
 reset :
 	$(info Reseting device...)
+#	$(STLINK) -HardRst
 	$(OPENOCD) $(OOCD_INIT) $(OOCD_EXEC) $(OOCD_EXIT)
 
 .PHONY : all lib clean flash debug reset
