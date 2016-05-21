@@ -2,7 +2,7 @@
 
     @file    StateOS: osport.h
     @author  Rajmund Szymanski
-    @date    09.03.2016
+    @date    21.05.2016
     @brief   StateOS port definitions for STM32F3 uC.
 
  ******************************************************************************
@@ -188,16 +188,15 @@ static inline
 void port_tmr_force( void )
 {
 #if OS_ROBIN && OS_TIMER
-	OS_TIM->DIER = TIM_DIER_CC1IE;
-	OS_TIM->EGR  = TIM_EGR_CC1G;
+	NVIC_SetPendingIRQ(OS_TIM_IRQn);
 #endif
 }
 
 /* -------------------------------------------------------------------------- */
 
-#if     defined(__CC_ARM)
+#if   defined(__ARMCC_VERSION)
 #define __noreturn  __attribute__((noreturn))
-#elif   defined(__GNUC__)
+#elif defined(__GNUC__)
 #define __noreturn  __attribute__((noreturn, naked))
 #endif
 
