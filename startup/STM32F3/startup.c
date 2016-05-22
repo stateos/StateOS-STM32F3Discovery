@@ -1,17 +1,17 @@
 /*******************************************************************************
 @file     startup.c
 @author   Rajmund Szymanski
-@date     21.05.2016
+@date     22.05.2016
 @brief    STM32F3xx startup file.
           After reset the Cortex-M4 processor is in thread mode,
           priority is privileged, and the stack is set to main.
 *******************************************************************************/
 
-#include <stm32f3xx.h>
-
 /*******************************************************************************
  Specific definitions for the chip
 *******************************************************************************/
+
+#define   MAX_IRQn  81
 
 #define __ccm_start 0x10000000
 #define __ccm_end   0x10002000
@@ -269,10 +269,8 @@ void (* const vectors[])(void) __attribute__ ((used, section(".vectors"))) =
 	TIM20_UP_IRQHandler,
 	TIM20_TRG_COM_IRQHandler,
 	TIM20_CC_IRQHandler,
-#if defined(SPI4_IRQn)||defined(FPU_IRQn)
 	FPU_IRQHandler,
-#endif
-#if defined(SPI4_IRQn)
+#if MAX_IRQn > 81
 	0, 0,
 	SPI4_IRQHandler,
 #endif
@@ -283,6 +281,8 @@ void (* const vectors[])(void) __attribute__ ((used, section(".vectors"))) =
 /*******************************************************************************
  Specific definitions for the compiler
 *******************************************************************************/
+
+#include <stm32f3xx.h>
 
 #if   defined(__CC_ARM)
 #include "ARMCC/startup.h"
