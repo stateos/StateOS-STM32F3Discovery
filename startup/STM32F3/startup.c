@@ -27,7 +27,7 @@
 #endif
 
 #ifndef proc_stack_size
-#define proc_stack_size 1024 // <- default size of process stack
+#define proc_stack_size    0 // <- default size of process stack
 #endif
 
 #define main_stack (((main_stack_size)+7)&(~7))
@@ -38,7 +38,7 @@
 *******************************************************************************/
 
 extern char __initial_msp[];
-extern char __initial_psp[];
+extern char __initial_sp [];
 
 /*******************************************************************************
  Default fault handler
@@ -300,9 +300,9 @@ void (* const vectors[])(void) __attribute__ ((used, section(".vectors"))) =
 
 void Reset_Handler( void )
 {
-#if proc_stack_size > 0
+#if main_stack_size + proc_stack_size > 0
 	/* Initialize the process stack pointer */
-	__set_PSP((unsigned)__initial_psp);
+	__set_PSP((unsigned)__initial_sp);
 	__set_CONTROL(CONTROL_SPSEL_Msk);
 #endif
 #if __FPU_USED

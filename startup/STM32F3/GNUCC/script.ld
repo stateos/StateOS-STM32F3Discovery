@@ -133,8 +133,7 @@ SECTIONS
 	} > RAM
 
 	PROVIDE(__initial_msp = __main_stack_size ? __main_stack_end : __ram_end);
-	PROVIDE(__initial_psp = __proc_stack_end);
-	PROVIDE(__initial_sp  = __proc_stack_size ? __proc_stack_end : __initial_msp);
+	PROVIDE(__initial_sp  = __proc_stack_size ? __proc_stack_end : __ram_end);
 
 	PROVIDE(__bss_start__ = __bss_start);
 	PROVIDE(__bss_end__   = __bss_end);
