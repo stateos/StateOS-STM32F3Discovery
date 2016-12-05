@@ -2,7 +2,7 @@
 
     @file    StateOS: osport.h
     @author  Rajmund Szymanski
-    @date    10.11.2016
+    @date    04.12.2016
     @brief   StateOS port definitions for STM32F3 uC.
 
  ******************************************************************************
@@ -125,7 +125,7 @@ extern "C" {
 /* -------------------------------------------------------------------------- */
 
 #ifndef  OS_LOCK_LEVEL
-#define  OS_LOCK_LEVEL       (1<<(__NVIC_PRIO_BITS-1))
+#define  OS_LOCK_LEVEL        0 /* critical section blocks all interrupts */
 #endif
 
 #if      OS_LOCK_LEVEL >= (1<<__NVIC_PRIO_BITS)
@@ -140,16 +140,16 @@ extern "C" {
 
 /* -------------------------------------------------------------------------- */
 
-typedef  uint64_t          stk_t;
+typedef  uint64_t             stk_t;
 
 /* -------------------------------------------------------------------------- */
 
-#if   defined(__CSMC__)
-#define  __initial_sp     _stack
+#if      defined(__CSMC__)
+#define  __initial_sp        _stack
 #endif
 
-extern   char            __initial_sp[];
-#define  MAIN_SP         __initial_sp
+extern   stk_t              __initial_sp[];
+#define  MAIN_TOP           __initial_sp
 
 /* -------------------------------------------------------------------------- */
 
@@ -207,50 +207,84 @@ void port_tmr_force( void )
 
 /* -------------------------------------------------------------------------- */
 
-#if   defined(__CC_ARM)
-#define  __always        __attribute__((always_inline))
-#define  __constructor   __attribute__((constructor))
-#define  __noreturn      __attribute__((noreturn))
-#elif defined(__ARMCC_VERSION)
-#define  __always        __attribute__((always_inline))
-#define  __constructor   __attribute__((constructor))
-#define  __noreturn      __attribute__((noreturn))
-#define  __weak          __attribute__((weak))
-#elif defined(__GNUC__)
-#define  __always        __attribute__((always_inline))
-#define  __constructor   __attribute__((constructor))
-#define  __noreturn      __attribute__((noreturn, naked))
-#define  __weak          __attribute__((weak))
-#elif defined(__CSMC__)
-#define  __always
-#define  __constructor
-#define  __noreturn
+#if      defined(__ARMCC_VERSION)
+
+#ifndef  __ALWAYS
+#define  __ALWAYS                 __attribute__((always_inline))
+#endif
+#ifndef  __CONSTRUCTOR
+#define  __CONSTRUCTOR            __attribute__((constructor))
+#endif
+#ifndef  __NORETURN
+#define  __NORETURN               __attribute__((noreturn))
+#endif
+#ifndef  __WEAK
+#define  __WEAK                   __attribute__((weak))
+#endif
+
+#elif    defined(__GNUC__)
+
+#ifndef  __ALWAYS
+#define  __ALWAYS                 __attribute__((always_inline))
+#endif
+#ifndef  __CONSTRUCTOR
+#define  __CONSTRUCTOR            __attribute__((constructor))
+#endif
+#ifndef  __NORETURN
+#define  __NORETURN               __attribute__((noreturn, naked))
+#endif
+#ifndef  __WEAK
+#define  __WEAK                   __attribute__((weak))
+#endif
+
+#elif    defined(__CSMC__)
+
+#ifndef  __ALWAYS
+#define  __ALWAYS
+#endif
+#ifndef  __CONSTRUCTOR
+#define  __CONSTRUCTOR
+#warning No compiler specific solution for __CONSTRUCTOR. __CONSTRUCTOR is ignored.
+#endif
+#ifndef  __NORETURN
+#define  __NORETURN
+#endif
+#ifndef  __WEAK
+#define  __WEAK                   __weak
+#endif
+
+#define  __disable_irq()          __ASM("cpsid i")
+#define  __enable_irq()           __ASM("cpsie i")
+
 #else
+
 #error   Unknown compiler!
+
 #endif
 
 /* -------------------------------------------------------------------------- */
 
-#if   defined(__CSMC__)
-#define  __disable_irq()            __ASM("cpsid i")
-#define  __enable_irq()             __ASM("cpsie i")
+#ifdef __GNUC__
+#define  port_set_sp(sp)          __asm volatile ("mov sp, %0" :: "r" (sp) : "memory")
+#else
+#define  port_set_sp(sp)          __set_PSP((unsigned)(sp))
 #endif
 
 #if OS_LOCK_LEVEL && (__CORTEX_M >= 3)
 
-#define  port_get_lock()            __get_BASEPRI()
-#define  port_put_lock(state)       __set_BASEPRI(state)
+#define  port_get_lock()          __get_BASEPRI()
+#define  port_put_lock(state)     __set_BASEPRI(state)
 
-#define  port_set_lock()            __set_BASEPRI((OS_LOCK_LEVEL)<<(8-__NVIC_PRIO_BITS))
-#define  port_clr_lock()            __set_BASEPRI(0)
+#define  port_set_lock()          __set_BASEPRI((OS_LOCK_LEVEL)<<(8-__NVIC_PRIO_BITS))
+#define  port_clr_lock()          __set_BASEPRI(0)
 
 #else
 
-#define  port_get_lock()            __get_PRIMASK()
-#define  port_put_lock(state)       __set_PRIMASK(state)
+#define  port_get_lock()          __get_PRIMASK()
+#define  port_put_lock(state)     __set_PRIMASK(state)
 
-#define  port_set_lock()            __disable_irq()
-#define  port_clr_lock()            __enable_irq()
+#define  port_set_lock()          __disable_irq()
+#define  port_clr_lock()          __enable_irq()
 
 #endif
 
