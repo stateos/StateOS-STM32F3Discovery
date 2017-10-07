@@ -14,11 +14,11 @@ before_install:
   - sudo apt-get install -y gcc-arm-embedded
 
 install:
-  - wget https://github.com/stateos/StateOS/archive/master.zip -O StateOS-master.zip
-  - unzip -q -d . StateOS-master.zip StateOS-master/StateOS/kernel/*
+  - wget https://github.com/stateos/StateOS/archive/master.zip
+  - unzip -q master.zip
   - mv -T StateOS-master/StateOS/kernel/ StateOS/kernel/
-  - unzip -q -d . StateOS-master.zip StateOS-master/StateOS/port/CORTEXM/*
-  - mv -T StateOS-master/StateOS/port/CORTEXM/ StateOS/port/CORTEXM/ 
+  - mv -T StateOS-master/StateOS/port/CORTEXM/ StateOS/port/CORTEXM/
+  - rm -r StateOS-master
 
 before_script: arm-none-eabi-gcc --version
 
