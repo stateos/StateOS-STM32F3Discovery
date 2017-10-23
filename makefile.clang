@@ -6,7 +6,7 @@
 #**********************************************************#
 
 ARMCC      := c:/sys/arm/armclang/bin/
-GNUCC      := c:/sys/gcc-arm/bin/arm-none-eabi-
+GNUCC      := c:/sys/arm-gcc/bin/arm-none-eabi-
 OPENOCD    := c:/sys/tools/openocd/bin-x64/openocd
 STLINK     := c:/sys/tools/st-link/st-link_cli -Q -c SWD UR
 
