@@ -1,8 +1,8 @@
 /*******************************************************************************
-@file     stm32f4xx.icf
+@file     stm32f3xx.icf
 @author   Rajmund Szymanski
 @date     07.11.2017
-@brief    Linker script for STM32F407VG device with 1024KB FLASH and 192KB RAM
+@brief    Linker script for STM32F303VC device with 256KB FLASH and 48KB RAM
 *******************************************************************************/
 
 define symbol __ROM_start__ = 0x08000000;
