@@ -21,8 +21,6 @@ ENTRY(Reset_Handler)
 
 SECTIONS
 {
-	__text_start = ORIGIN(ROM);
-
 	.text :
 	{
 		KEEP (*(.vectors))
@@ -70,9 +68,6 @@ SECTIONS
 		*(.ARM.exidx* .gnu.linkonce.armexidx.*)
 		__exidx_end = .;
 	} > ROM
-
-	__text_end  = .;
-	__text_size = . - __text_start;
 
 	.ccm (NOLOAD):
 	{

@@ -1,7 +1,7 @@
 /******************************************************************************
  * @file    system_stm32f3xx.c
  * @author  Rajmund Szymanski
- * @date    03.03.2016
+ * @date    02.11.2017
  * @brief   This file provides set of configuration functions for STM32F3 uC.
  ******************************************************************************/
 
@@ -34,7 +34,7 @@
 /* -------------------------------------------------------------------------- */
 
 #ifndef __NO_SYSTEM_INIT
-__attribute__ (( weak ))
+__WEAK
 void SystemInit( void )
 {
 	FLASH->ACR = LATENCY | FLASH_ACR_PRFTBE;
@@ -61,10 +61,19 @@ void SystemInit( void )
 /* -------------------------------------------------------------------------- */
 
 #ifndef __NO_SYSTEM_INIT
-__attribute__ (( weak ))
+__WEAK
+void SystemCoreClockUpdate( void )
+{
+}
+#endif//__NO_SYSTEM_INIT
+
+/* -------------------------------------------------------------------------- */
+
+#ifndef __NO_SYSTEM_INIT
+__WEAK
 uint32_t SystemCoreClock = CPU_FREQ * MHz;
 #else
-__attribute__ (( weak ))
+__WEAK
 uint32_t SystemCoreClock = HSI_FREQ * MHz;
 #endif//__NO_SYSTEM_INIT
 
