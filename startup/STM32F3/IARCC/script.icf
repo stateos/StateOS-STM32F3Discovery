@@ -6,15 +6,15 @@
 *******************************************************************************/
 
 define symbol __ROM_start__ = 0x08000000;
-define symbol __ROM_size__  = 256K; // 0x00100000
+define symbol __ROM_size__  = 256K; // 0x00040000
 define symbol __ROM_end__   = __ROM_start__+__ROM_size__;
 
 define symbol __CCM_start__ = 0x10000000;
-define symbol __CCM_size__  = 8K; // 0x00010000
+define symbol __CCM_size__  = 8K; // 0x00002000
 define symbol __CCM_end__   = __CCM_start__+__CCM_size__;
 
 define symbol __RAM_start__ = 0x20000000;
-define symbol __RAM_size__  = 48K; // 0x00020000
+define symbol __RAM_size__  = 48K; // 0x0000C000
 define symbol __RAM_end__   = __RAM_start__+__RAM_size__;
 
 define memory MEM with size = 4G;
