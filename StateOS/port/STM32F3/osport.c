@@ -2,7 +2,7 @@
 
     @file    StateOS: osport.c
     @author  Rajmund Szymanski
-    @date    24.10.2017
+    @date    18.12.2017
     @brief   StateOS port file for STM32F3 uC.
 
  ******************************************************************************
@@ -83,10 +83,9 @@ void port_sys_init( void )
 	#endif
 
 	RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
-	#if OS_ROBIN
 	NVIC_SetPriority(TIM2_IRQn, 0xFF);
 	NVIC_EnableIRQ(TIM2_IRQn);
-	#endif
+
 	TIM2->PSC  = (CPU_FREQUENCY)/(OS_FREQUENCY)-1;
 	TIM2->EGR  = TIM_EGR_UG;
 	TIM2->CR1  = TIM_CR1_CEN;
@@ -158,10 +157,8 @@ void SysTick_Handler( void )
 
 #else //OS_TICKLESS
 
-	#if OS_ROBIN
-
 /******************************************************************************
- Non-tick-less mode with preemption: interrupt handler of system timer
+ Tick-less mode: interrupt handler of system timer
 *******************************************************************************/
 
 void TIM2_IRQHandler( void )
@@ -174,8 +171,10 @@ void TIM2_IRQHandler( void )
  End of the handler
 *******************************************************************************/
 
+	#if OS_ROBIN
+
 /******************************************************************************
- Non-tick-less mode with preemption: interrupt handler for context switch triggering
+ Tick-less mode with preemption: interrupt handler for context switch triggering
 *******************************************************************************/
 
 void SysTick_Handler( void )

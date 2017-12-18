@@ -2,7 +2,7 @@
 
     @file    StateOS: osport.h
     @author  Rajmund Szymanski
-    @date    08.12.2017
+    @date    18.12.2017
     @brief   StateOS port definitions for STM32F3 uC.
 
  ******************************************************************************
@@ -89,7 +89,7 @@ uint32_t port_sys_time( void )
 #if OS_TICKLESS
 	return TIM2->CNT;
 #else
-	return 0U;
+	return 0;
 #endif
 }
 
@@ -108,8 +108,10 @@ void port_ctx_switch( void )
 __STATIC_INLINE
 void port_ctx_reset( void )
 {
-#if OS_ROBIN && OS_TICKLESS
+#if OS_TICKLESS
+	#if OS_ROBIN
 	SysTick->VAL = 0;
+	#endif
 #endif
 }
 
@@ -119,7 +121,7 @@ void port_ctx_reset( void )
 __STATIC_INLINE
 void port_tmr_stop( void )
 {
-#if OS_ROBIN && OS_TICKLESS
+#if OS_TICKLESS
 	TIM2->DIER = 0;
 #endif
 }
@@ -130,7 +132,7 @@ void port_tmr_stop( void )
 __STATIC_INLINE
 void port_tmr_start( uint32_t timeout )
 {
-#if OS_ROBIN && OS_TICKLESS
+#if OS_TICKLESS
 	TIM2->CCR1 = timeout;
 	TIM2->DIER = TIM_DIER_CC1IE;
 #else
@@ -144,7 +146,7 @@ void port_tmr_start( uint32_t timeout )
 __STATIC_INLINE
 void port_tmr_force( void )
 {
-#if OS_ROBIN && OS_TICKLESS
+#if OS_TICKLESS
 	NVIC_SetPendingIRQ(TIM2_IRQn);
 #endif
 }
