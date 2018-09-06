@@ -25,7 +25,7 @@ SCRIPT     ?=
 #----------------------------------------------------------#
 
 DEFS       += STM32F303xC __ARM__
-KEYS       += .csmcc .cortexm .stm32f4 *
+KEYS       += .csmcc .cortexm .stm32f3 *
 ifneq ($(MAKECMDGOALS),qemu)
 LIBS       += crtsi libfpulc libilc libm
 else
