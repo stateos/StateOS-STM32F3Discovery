@@ -1,7 +1,7 @@
 #**********************************************************#
 #file     makefile
 #author   Rajmund Szymanski
-#date     21.11.2017
+#date     06.09.2018
 #brief    STM32F3xx makefile.
 #**********************************************************#
 
@@ -14,17 +14,17 @@ QEMU       := c:/sys/qemu-arm/bin/qemu-system-gnuarmeclipse -semihosting -board 
 
 PROJECT    ?= $(notdir $(CURDIR))
 DEFS       ?= USE_NANO
-LIBS       ?=
 DIRS       ?=
-KEYS       ?=
 INCS       ?=
+LIBS       ?=
+KEYS       ?=
 OPTF       ?= 2 # s
 SCRIPT     ?=
 
 #----------------------------------------------------------#
 
 DEFS       += STM32F303xC
-KEYS       += .gnucc *
+KEYS       += .gnucc .cortexm .stm32f4 *
 
 #----------------------------------------------------------#
 
