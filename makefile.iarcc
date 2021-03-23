@@ -1,0 +1,18 @@
+PROJECT := test
+GNUCC   :=
+DEFS    :=
+INCS    := include
+SRCS    := src/main.c
+LIBS    :=
+SCRIPT  :=
+COMMON  := common
+
+#----------------------------------------------------------#
+include $(COMMON)/stateos/make/stm32f3discovery/makefile.iarcc
+#----------------------------------------------------------#
+include $(COMMON)/cmsis/makefile
+include $(COMMON)/device/makefile
+include $(COMMON)/startup/makefile
+#----------------------------------------------------------#
+include $(COMMON)/make/makefile
+#----------------------------------------------------------#
